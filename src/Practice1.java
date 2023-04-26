@@ -2,6 +2,7 @@ import java.sql.*;
 import java.util.*;
 
 public class Practice1 {
+    public static HashMap<String,ArrayList> dataField=new HashMap<>();
     public static void main(String[] args){
         Connection conn=null;
         String dbURL="jdbc:mysql://localhost:3306/db_practice?serverTimezone=Asia/Seoul&useSSL=false&useUnicode=true&characterEncoding=utf8";
@@ -18,6 +19,7 @@ public class Practice1 {
         }
         //create_table();
         insert_data();
+        create_index();
         //String SQL = "CREATE TABLE MEMO_TABLE ( name varchar(4) primary key, msg varchar(100))";
         try {
             //Statement stmt=conn.createStatement();
@@ -61,10 +63,12 @@ public class Practice1 {
             }
             sql+=attr_sql;
         }
-        System.out.println(sql);
         try{
             Statement stmt=conn.createStatement();
             boolean b=stmt.execute(sql);
+            System.out.println(b);
+            boolean c=stmt.execute("ALTER TABLE "+title+" AUTO_INCREMENT=0");
+            System.out.println(c);
         }catch (Exception e){
             System.out.println(e);
         }
@@ -105,8 +109,10 @@ public class Practice1 {
                 if (dataInput.length()>0){
                     ArrayList<String> dataset=new ArrayList<>(Arrays.asList(dataInput.split(" ")));
                     hm.put(i-1,dataset);
+                    dataField.put(column_name,dataset);
                 }else {
                     hm.put(i-1, new ArrayList());
+                    dataField.put(column_name,new ArrayList());
                 }
             }
 
@@ -137,7 +143,53 @@ public class Practice1 {
     }
 
     public static void create_index(){
-        // 저장할 때 3bit씩 저장(한자리수 integer만 저장되도록)
+        Connection conn=null;
+        String dbURL="jdbc:mysql://localhost:3306/db_practice?serverTimezone=Asia/Seoul&useSSL=false&useUnicode=true&characterEncoding=utf8";
+        PreparedStatement pstmt;
+        ResultSet rs;
+        Scanner sc=new Scanner(System.in);
+
+        String dbID="root";
+        String dbPassword="1234";
+        String title;
+
+        ArrayList<String> index_field=null;
+        System.out.print("Enter table name:");
+        title=sc.nextLine();
+        System.out.print("Enter make index you want: ");
+
+        String index_line=sc.nextLine();
+        index_field=new ArrayList<>(Arrays.asList(index_line.split(" ")));
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
+            Statement stmt = conn.createStatement();
+
+            for (String key:index_field){
+                ArrayList<String> values=dataField.get(key);
+                for (int i=0;i<values.size();i++){
+                    String result_string="";
+                    rs=stmt.executeQuery("select "+key+" from "+title);
+                    System.out.println("---------"+values.get(i)+"-----------");
+                    while (rs.next()){
+                        if (rs.getString(key).equals(values.get(i))){
+                            result_string+="1";
+                        }else{
+                            result_string+="0";
+                        }
+                    }
+                    System.out.println(result_string);
+                }
+
+            }
+        }catch (Exception e){
+            System.out.println(e);
+
+
+        }
+
+
     }
 
     public static void result_query(){
