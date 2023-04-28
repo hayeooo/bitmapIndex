@@ -1,8 +1,17 @@
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.sql.*;
 import java.util.*;
 
 public class Practice1 {
-    public static HashMap<String,ArrayList> dataField=new HashMap<>();
+    public static HashMap<String,ArrayList<String>> dataField=new HashMap<>(){{
+        put("t_id",new ArrayList<String>());
+        put("c_id",new ArrayList<String>());
+        put("b_id",new ArrayList<String>());
+        put("used",new ArrayList<String>(Arrays.asList("grocery", "beauty", "ATM", "clothes","culture","edu","medi","traffic")));
+        put("is_dep",new ArrayList<String>(Arrays.asList("deposit","withdraw")));
+        put("time", new ArrayList<String>(Arrays.asList("1","2","3","4","5","6","7","8","9","10","11","12")));
+    }};
     public static void main(String[] args){
         Connection conn=null;
         String dbURL="jdbc:mysql://localhost:3306/db_practice?serverTimezone=Asia/Seoul&useSSL=false&useUnicode=true&characterEncoding=utf8";
@@ -18,7 +27,7 @@ public class Practice1 {
             e.printStackTrace();
         }
         //create_table();
-        insert_data();
+        //insert_data();
         create_index();
         //String SQL = "CREATE TABLE MEMO_TABLE ( name varchar(4) primary key, msg varchar(100))";
         try {
@@ -65,6 +74,7 @@ public class Practice1 {
         }
         try{
             Statement stmt=conn.createStatement();
+            System.out.println(sql);
             boolean b=stmt.execute(sql);
             System.out.println(b);
             boolean c=stmt.execute("ALTER TABLE "+title+" AUTO_INCREMENT=0");
@@ -109,14 +119,14 @@ public class Practice1 {
                 if (dataInput.length()>0){
                     ArrayList<String> dataset=new ArrayList<>(Arrays.asList(dataInput.split(" ")));
                     hm.put(i-1,dataset);
-                    dataField.put(column_name,dataset);
+                    //dataField.put(column_name,dataset);
                 }else {
-                    hm.put(i-1, new ArrayList());
-                    dataField.put(column_name,new ArrayList());
+                    hm.put(i-1, new ArrayList<>());
+                    //dataField.put(column_name,new ArrayList());
                 }
             }
 
-            for (int j=0;j<10;j++){
+            for (int j=0;j<100;j++){
                 ArrayList<String> row_data=new ArrayList<>();
                 for (int key:hm.keySet()){
                     ArrayList hm_result=hm.get(key);
@@ -125,7 +135,7 @@ public class Practice1 {
                         row_data.add("\'"+hm_result.get(randomNumber).toString()+"\'");
                     }else{
                         String randomString="";
-                        for (int i=0;i<3;i++){
+                        for (int i=0;i<10;i++){
                             char ch=(char)((int)(Math.random()*25)+97);
                             randomString+=ch;
                         }
@@ -168,10 +178,13 @@ public class Practice1 {
 
             for (String key:index_field){
                 ArrayList<String> values=dataField.get(key);
+                //char [] buf=new char[1024];
                 for (int i=0;i<values.size();i++){
                     String result_string="";
                     rs=stmt.executeQuery("select "+key+" from "+title);
-                    System.out.println("---------"+values.get(i)+"-----------");
+                    FileOutputStream fos=new FileOutputStream("D:/데이터베이스시스템/index_"+key+"_"+values.get(i)+".txt");
+                    BufferedOutputStream bos=new BufferedOutputStream(fos,100);
+                    // File 생성, write append 가능하게 name: index_key_values.get(i)
                     while (rs.next()){
                         if (rs.getString(key).equals(values.get(i))){
                             result_string+="1";
@@ -179,14 +192,12 @@ public class Practice1 {
                             result_string+="0";
                         }
                     }
-                    System.out.println(result_string);
+                    bos.write(result_string.getBytes());
                 }
 
             }
         }catch (Exception e){
             System.out.println(e);
-
-
         }
 
 
@@ -194,5 +205,24 @@ public class Practice1 {
 
     public static void result_query(){
         //Integer.toBinaryString
-    }
+        Connection conn=null;
+        String dbURL="jdbc:mysql://localhost:3306/db_practice?serverTimezone=Asia/Seoul&useSSL=false&useUnicode=true&characterEncoding=utf8";
+        PreparedStatement pstmt;
+        ResultSet rs;
+        Scanner sc=new Scanner(System.in);
+
+        String dbID="root";
+        String dbPassword="1234";
+        String title;
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
+            Statement stmt = conn.createStatement();
+        }catch (Exception e){
+            System.out.println(e);
+
+        }
+
+        }
 }
