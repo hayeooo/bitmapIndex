@@ -1,4 +1,5 @@
 import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.sql.*;
 import java.util.*;
@@ -28,7 +29,8 @@ public class Practice1 {
         }
         //create_table();
         //insert_data();
-        create_index();
+        //create_index();
+        result_query();
         //String SQL = "CREATE TABLE MEMO_TABLE ( name varchar(4) primary key, msg varchar(100))";
         try {
             //Statement stmt=conn.createStatement();
@@ -213,16 +215,112 @@ public class Practice1 {
 
         String dbID="root";
         String dbPassword="1234";
-        String title;
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection(dbURL, dbID, dbPassword);
             Statement stmt = conn.createStatement();
+
+            ArrayList<String> to_search=new ArrayList<>();
+            List operator=null;
+            // 값 입력 time 7 / used grocery / end
+            // operator 입력 ( and / or )
+            System.out.println("Enter value to search");
+            System.out.print("used>> ");
+            String used_value=sc.nextLine();
+
+            System.out.print("is_dep>> ");
+            String dep_value=sc.nextLine();
+
+            System.out.print("time>> ");
+            String time_value=sc.nextLine();
+
+            System.out.print("Enter operator(and/or): ");
+            String operLine=sc.nextLine();
+            operator=Arrays.asList(operLine.split(" "));
+
+            FileInputStream used_fis=new FileInputStream("D:/데이터베이스시스템/index_used_"+used_value+".txt");
+            FileInputStream dep_fis=new FileInputStream("D:/데이터베이스시스템/index_is_dep_"+dep_value+".txt");
+            FileInputStream time_fis=new FileInputStream("D:/데이터베이스시스템/index_time_"+time_value+".txt");
+
+            byte[] used_buff=new byte[50];
+            byte[] dep_buff=new byte[50];
+            byte[] time_buff=new byte[50];
+
+            int idx=1;
+            while (used_fis.read(used_buff)!=-1){
+                dep_fis.read(dep_buff);
+                time_fis.read(time_buff);
+
+                String used_strBuff=new String(used_buff);
+                String dep_strBuff=new String(dep_buff);
+                String time_strBuff=new String(time_buff);
+                /*
+                for (int i=0;i<time_strBuff.length();i++){
+                    if (time_strBuff.charAt(i)=='1'){
+                        rs=stmt.executeQuery("select * from banklog where idx="+Integer.toString(idx));
+                        while (rs.next()){
+                            System.out.print(rs.getString("time"));
+                        }
+                    }
+                    idx+=1;
+                }
+                 */
+                String result="";
+                if (operator.get(0).equals("and")){
+                    result=and_operator(used_strBuff,dep_strBuff);
+                }else if (operator.get(0).equals("or")){
+                    result=or_operator(used_strBuff,dep_strBuff);
+                }
+                if (operator.get(1).equals("and")){
+                    result=and_operator(result,time_strBuff);
+                }else if (operator.get(1).equals("or")){
+                    result=or_operator(result,time_strBuff);
+                }
+                for (int i=0;i<result.length();i++){
+                    if (result.charAt(i)=='1'){
+                        rs=stmt.executeQuery("select * from banklog where idx="+Integer.toString(idx));
+                        while (rs.next()){
+                            System.out.print(rs.getString("used"));
+                            System.out.print(rs.getString("is_dep"));
+                            System.out.println(rs.getString("time"));
+                        }
+                    }
+                    idx+=1;
+                }
+            }
+
+            used_fis.close();
+            dep_fis.close();
+            time_fis.close();
+
         }catch (Exception e){
             System.out.println(e);
-
         }
 
         }
+
+        public static String and_operator(String op1,String op2){
+            String result="";
+            for (int i=0;i<op1.length();i++){
+                if (op1.charAt(i)=='1' && op2.charAt(i)=='1'){
+                    result+='1';
+                }else{
+                    result+='0';
+                }
+            }
+            return result;
+        }
+        public static String or_operator(String op1,String op2){
+            String result="";
+            for (int i=0;i<op1.length();i++){
+                if (op1.charAt(i)=='1'||op2.charAt(i)=='1'){
+                    result+='1';
+                }else{
+                    result+='0';
+                }
+            }
+            return result;
+        }
+
 }
