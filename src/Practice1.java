@@ -21,23 +21,22 @@ public class Practice1 {
 
         String dbID="root";
         String dbPassword="1234";
+        Scanner sc=new Scanner(System.in);
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn=DriverManager.getConnection(dbURL,dbID,dbPassword);
         }catch (Exception e){
             e.printStackTrace();
         }
-        //create_table();
-        //insert_data();
-        //create_index();
-        result_query();
-        //String SQL = "CREATE TABLE MEMO_TABLE ( name varchar(4) primary key, msg varchar(100))";
-        try {
-            //Statement stmt=conn.createStatement();
-            //boolean b=stmt.execute(SQL);
-
-        }catch (Exception e){
-            e.printStackTrace();
+        while (true){
+            System.out.println("Enter the number of menu");
+            System.out.println("(1)create table (2) insert data (3) create index (4) result query (5) end");
+            int menu=sc.nextInt();
+            if (menu==1) create_table();
+            else if (menu==2) insert_data();
+            else if (menu==3) create_index();
+            else if (menu==4) result_query();
+            else break;
         }
 
     }
@@ -206,7 +205,6 @@ public class Practice1 {
     }
 
     public static void result_query(){
-        //Integer.toBinaryString
         Connection conn=null;
         String dbURL="jdbc:mysql://localhost:3306/db_practice?serverTimezone=Asia/Seoul&useSSL=false&useUnicode=true&characterEncoding=utf8";
         PreparedStatement pstmt;
@@ -248,6 +246,8 @@ public class Practice1 {
             byte[] time_buff=new byte[50];
 
             int idx=1;
+            System.out.println("==========================================RESULT=============================================");
+            System.out.println("|     t_id     |     c_id     |     b_id     |     used     |     is_dep     |     time     |");
             while (used_fis.read(used_buff)!=-1){
                 dep_fis.read(dep_buff);
                 time_fis.read(time_buff);
@@ -255,17 +255,7 @@ public class Practice1 {
                 String used_strBuff=new String(used_buff);
                 String dep_strBuff=new String(dep_buff);
                 String time_strBuff=new String(time_buff);
-                /*
-                for (int i=0;i<time_strBuff.length();i++){
-                    if (time_strBuff.charAt(i)=='1'){
-                        rs=stmt.executeQuery("select * from banklog where idx="+Integer.toString(idx));
-                        while (rs.next()){
-                            System.out.print(rs.getString("time"));
-                        }
-                    }
-                    idx+=1;
-                }
-                 */
+
                 String result="";
                 if (operator.get(0).equals("and")){
                     result=and_operator(used_strBuff,dep_strBuff);
@@ -281,9 +271,12 @@ public class Practice1 {
                     if (result.charAt(i)=='1'){
                         rs=stmt.executeQuery("select * from banklog where idx="+Integer.toString(idx));
                         while (rs.next()){
-                            System.out.print(rs.getString("used"));
-                            System.out.print(rs.getString("is_dep"));
-                            System.out.println(rs.getString("time"));
+                            System.out.print((String.format("%14s",rs.getString("t_id"))));
+                            System.out.print(String.format("%14s",rs.getString("c_id")));
+                            System.out.print(String.format("%14s",rs.getString("b_id")));
+                            System.out.print(String.format("%15s",rs.getString("used")));
+                            System.out.print(String.format("%15s",rs.getString("is_dep")));
+                            System.out.println(String.format("%18s",rs.getString("time")));
                         }
                     }
                     idx+=1;
